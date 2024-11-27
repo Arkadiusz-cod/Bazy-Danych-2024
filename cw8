@@ -1,0 +1,27 @@
+zad-1.
+1. SELECT AVG(waga) AS srednia_waga FROM wikingowie;
+2.SELECT rodzaj, AVG(waga) AS srednia_waga, COUNT(*) AS liczba_kreatur FROM kreatury GROUP BY rodzaj;
+3.SELECT rodzaj, AVG(YEAR(CURDATE()) - YEAR(data_urodzenia)) AS sredni_wiek FROM kreatury GROUP BY rodzaj;
+zad-2.
+1.SELECT rodzaj_zasobu, SUM(waga) AS suma_wag FROM zasoby GROUP BY rodzaj_zasobu;
+2.SELECT nazwa_zasobu, AVG(waga) AS srednia_waga FROM zasoby GROUP BY nazwa_zasobu HAVING COUNT(*) >= 4 AND SUM(waga) > 10;
+3.SELECT rodzaj_zasobu, COUNT(DISTINCT nazwa_zasobu) AS liczba_nazw FROM zasoby WHERE liczba > 1 GROUP BY rodzaj_zasobu;
+zad-3.
+1. SELECT k.nazwa AS kreatura, COUNT(z.id_zasobu) AS ilosc_zasobow FROM kreatury k JOIN ekwipunek e ON k.id_kreatury = e.id_kreatury JOIN zasoby z ON e.id_zasobu = z.id_zasobu GROUP BY k.nazwa;
+2. SELECT k.nazwa AS kreatura, GROUP_CONCAT(z.nazwa_zasobu) AS zasoby FROM kreatury k JOIN ekwipunek e ON k.id_kreatury = e.id_kreatury JOIN zasoby z ON e.id_zasobu = z.id_zasobu GROUP BY k.nazwa;
+3. SELECT k.nazwa FROM kreatury k LEFT JOIN ekwipunek e ON k.id_kreatury = e.id_kreatury WHERE e.id_kreatury IS NULL;
+zad-4.
+1. SELECT w.nazwa AS wiking, z.nazwa_zasobu FROM wikingowie w NATURAL JOIN ekwipunek e NATURAL JOIN zasoby z WHERE YEAR(w.data_urodzenia) BETWEEN 1670 AND 1679;
+2. SELECT k.nazwa AS kreatura FROM kreatury k JOIN ekwipunek e ON k.id_kreatury = e.id_kreatury JOIN zasoby z ON e.id_zasobu = z.id_zasobu WHERE z.nazwa_zasobu = 'jedzenie' ORDER BY k.data_urodzenia DESC LIMIT 5;
+3.SELECT k1.nazwa AS kreatura1, k2.nazwa AS kreatura2 FROM kreatury k1 JOIN kreatury k2 ON ABS(k1.id_kreatury - k2.id_kreatury) = 5;
+zad-5.
+1. SELECT k.rodzaj, AVG(z.waga) AS srednia_waga FROM kreatury k JOIN ekwipunek e ON k.id_kreatury = e.id_kreatury JOIN zasoby z ON e.id_zasobu = z.id_zasobu WHERE k.rodzaj NOT IN ('małpa', 'wąż') AND e.ilosc < 30 GROUP BY k.rodzaj;
+2. SELECT rodzaj, nazwa AS najmłodsza_kreatura, data_urodzenia AS data_najmlodsza FROM kreatury ORDER BY data_urodzenia DESC LIMIT 1 UNION ALL SELECT rodzaj, nazwa AS najstarsza_kreatura, data_urodzenia AS data_najstarsza FROM kreatury ORDER BY data_urodzenia ASC LIMIT 1;
+
+
+
+
+
+
+
+
