@@ -1,0 +1,25 @@
+1.1\\\\\
+INSERT INTO wikingowie.kreaturaSELECT * FROM baza_wikingowie.kreatura;
+INSERT INTO wikingowie.uczestnicy SELECT * FROM baza_wikingowie.uczestnicy;
+INSERT INTO wikingowie.etapy_wyprawy SELECT * FROM baza_wikingowie.etapy_wyprawy;
+INSERT INTO wikingowie.sektor SELECT * FROM baza_wikingowie.sektor;
+INSERT INTO wikingowie.wyprawa SELECT * FROM baza_wikingowie.wyprawa;
+1.2\\\\\\
+SELECT k.nazwa FROM kreatura k LEFT JOIN uczestnicy u ON k.id = u.kreatura_id WHERE u.wyprawa_id IS NULL;
+1.3\\\\\\\
+SELECT w.nazwa AS wyprawa_nazwa, SUM(u.ekwipunek) AS suma_ekwipunku FROM wyprawa w JOIN uczestnicy u ON w.id = u.wyprawa_id GROUP BY w.nazwa;
+2.1\\\\\\\
+SELECT w.nazwa AS wyprawa_nazwa, COUNT(u.id) AS liczba_uczestnikow, GROUP_CONCAT(u.nazwa) AS uczestnicy FROM wyprawa w JOIN uczestnicy u ON w.id = u.wyprawa_id GROUP BY w.nazwa;
+2.2\\\\\\\
+SELECT w.nazwa AS wyprawa_nazwa, e.numer_etapu, s.nazwa AS sektor_nazwa, e.kierownik FROM etapy_wyprawy e JOIN wyprawa w ON e.wyprawa_id = w.id JOIN sektor s ON e.sektor_id = s.id ORDER BY w.data_poczatku, e.numer_etapu;
+3.1\\\\\\\
+SELECT s.nazwa AS sektor_nazwa, COUNT(e.sektor_id) AS liczba_odwiedzin FROM sektor s LEFT JOIN etapy_wyprawy e ON s.id = e.sektor_id GROUP BY s.nazwa;
+3.2\\\\\\\
+SELECT k.nazwa AS kreatura_nazwa,  IFNULL(COUNT(u.wyprawa_id), 0) AS liczba_wypraw, IF(COUNT(u.wyprawa_id) > 0, 'brał udział w wyprawie', 'nie brał udziału w wyprawie') AS status FROM kreatura k LEFT JOIN uczestnicy u ON k.id = u.kreatura_id GROUP BY k.nazwa;
+4.1\\\\\\\
+SELECT w.nazwa AS wyprawa_nazwa, SUM(CHAR_LENGTH(d.dziennik)) AS suma_znakow FROM wyprawa w JOIN dziennik d ON w.id = d.wyprawa_id GROUP BY w.nazwa HAVING suma_znakow < 400;
+4.2\\\\\\\
+SELECT w.nazwa AS wyprawa_nazwa,  AVG(u.waga * u.ilosc) AS srednia_waga FROM wyprawa w JOIN uczestnicy u ON w.id = u.wyprawa_id GROUP BY w.nazwa;
+5.1\\\\\\\
+SELECT k.nazwa AS kreatura_nazwa, DATEDIFF(w.data_poczatku, k.data_urodzenia) AS wiek_w_dniach FROM kreatura k JOIN uczestnicy u ON k.id = u.kreatura_id JOIN wyprawa w ON u.wyprawa_id = w.id WHERE w.sektor_id = (SELECT id FROM sektor WHERE nazwa = 'Chatka dziadka');
+
