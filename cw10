@@ -1,0 +1,18 @@
+\\\Zadanie 1.
+CREATE TRIGGER waga BEFORE INSERT OR UPDATE ON kreatura FOR EACH ROW BEGIN IF NEW.waga <= 0 THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Waga musi być większa od zera'; END IF; END;
+\\\Zadanie 2.
+CREATE TABLE archiwum_wypraw (  id_wyprawy INT, nazwa VARCHAR(100), data_rozpoczecia DATE,  data_zakonczenia DATE, kierownik VARCHAR(100));
+CREATE TRIGGER wyprawa AFTER DELETE ON wyprawa FOR EACH ROW BEGIN DECLARE kreatura_nazwa VARCHAR(100);
+SELECT nazwa INTO kreatura_nazwa FROM kreatura WHERE id_kreatury = OLD.id_kreatury;
+INSERT INTO archiwum_wypraw (id_wyprawy, nazwa, data_rozpoczecia, data_zakonczenia, kierownik)  VALUES (OLD.id_wyprawy, OLD.nazwa, OLD.data_rozpoczecia, OLD.data_zakonczenia, kreatura_nazwa); END;
+\\\Zadanie 3.
+CREATE PROCEDURE eliksir_sily(IN id_kreatury INT) BEGIN  UPDATE kreatura  SET udzwig = udzwig * 1.2 WHERE id_kreatury = id_kreatury; END;
+CREATE FUNCTION tekst (input_text VARCHAR(255)) RETURNS VARCHAR(255) DETERMINISTIC BEGIN RETURN UPPER(wpisz_tekst); END;
+\\Zadanie 4.
+CREATE TABLE system_alarmowy (id_alarmu INT AUTO_INCREMENT PRIMARY KEY,  wiadomosc VARCHAR(255));
+CREATE TRIGGER alarm_teściowa AFTER INSERT ON wyprawa FOR EACH ROW BEGIN IF EXISTS ( SELECT 1 FROM wyprawa WHERE id_wyprawy = NEW.id_wyprawy AND id_kreatury = (SELECT id_kreatury FROM kreatura WHERE nazwa = 'Teściowa')  AND sector LIKE '%Domek Dziadka%'  ) THEN   INSERT INTO system_alarmowy (wiadomosc)    VALUES ('Teściowa nadchodzi !!!'); END IF; END;
+\\Zadanie 5.
+CREATE PROCEDURE statystyka_udzwig(OUT srednia FLOAT, OUT suma FLOAT, OUT maks FLOAT) BEGIN SELECT AVG(udzwig), SUM(udzwig), MAX(udzwig) INTO srednia, suma, maks FROM kreatura; END;
+REATE PROCEDURE sektory_wyprawy(IN id_wyprawy INT) BEGIN DECLARE done INT DEFAULT 0;  DECLARE num_sektor VARCHAR(10); DECLARE sektor_nazwa VARCHAR(100); DECLARE sektor_cursor CURSOR FOR   SELECT sektor, nazwa FROM sektor WHERE id_wyprawy = id_wyprawy ORDER BY kolejność; DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;OPEN sektor_cursor;
+read_loop: LOOP FETCH sektor_cursor INTO num_sektor, sektor_nazwa; IF done THEN LEAVE read_loop; END IF;
+    SELECT CONCAT(num_sektor, ' ', sektor_nazwa);  END LOOP; CLOSE sektor_cursor; END;
