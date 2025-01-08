@@ -1,25 +1,78 @@
 1.1\\\\\
-INSERT INTO wikingowie.kreaturaSELECT * FROM baza_wikingowie.kreatura;
-INSERT INTO wikingowie.uczestnicy SELECT * FROM baza_wikingowie.uczestnicy;
-INSERT INTO wikingowie.etapy_wyprawy SELECT * FROM baza_wikingowie.etapy_wyprawy;
-INSERT INTO wikingowie.sektor SELECT * FROM baza_wikingowie.sektor;
-INSERT INTO wikingowie.wyprawa SELECT * FROM baza_wikingowie.wyprawa;
+insert into zarembaa.kreatura select * from wikingowie.kreatura;
+ 
+ insert into zarembaa.uczestnicy select * from wikingowie.uczestnicy;
+ 
+insert into zarembaa.etapy_wyprawy select * from wikingowie.etapy_wyprawy;
+ 
+insert into zarembaa.sektor select * from wikingowie.sektor;
+ 
+insert into zarembaa.wyprawa select * from wikingowie.wyprawa;
 1.2\\\\\\
-SELECT k.nazwa FROM kreatura k LEFT JOIN uczestnicy u ON k.id = u.kreatura_id WHERE u.wyprawa_id IS NULL;
+SELECT k.nazwa
+FROM kreatura k
+LEFT JOIN uczestnicy u ON k.idKreatury = u.id_wyprawy 
+WHERE u.id_wyprawy IS NULL;
 1.3\\\\\\\
-SELECT w.nazwa AS wyprawa_nazwa, SUM(u.ekwipunek) AS suma_ekwipunku FROM wyprawa w JOIN uczestnicy u ON w.id = u.wyprawa_id GROUP BY w.nazwa;
+select wyprawa.nazwa, sum(ekwipunek.ilosc) from wyprawa, kreatura, uczestnicy, ekwipunek where wyprawa.id_wyprawy = uczestnicy.id_wyprawy and uczestnicy.id_uczestnika = kreatura.idKreatury and kreatura.IdKreatury = ekwipunek.idkreatury group by wyprawa.nazwa;
 2.1\\\\\\\
-SELECT w.nazwa AS wyprawa_nazwa, COUNT(u.id) AS liczba_uczestnikow, GROUP_CONCAT(u.nazwa) AS uczestnicy FROM wyprawa w JOIN uczestnicy u ON w.id = u.wyprawa_id GROUP BY w.nazwa;
+SELECT w.nazwa, 
+       COUNT(u.id_uczestnika) AS liczba_uczestnikow,
+       GROUP_CONCAT(u.id_uczestnika SEPARATOR ', ') AS uczestnicy
+FROM wyprawa w
+JOIN uczestnicy u ON w.id_wyprawy = u.id_wyprawy  
+GROUP BY w.id_wyprawy, w.nazwa;
 2.2\\\\\\\
-SELECT w.nazwa AS wyprawa_nazwa, e.numer_etapu, s.nazwa AS sektor_nazwa, e.kierownik FROM etapy_wyprawy e JOIN wyprawa w ON e.wyprawa_id = w.id JOIN sektor s ON e.sektor_id = s.id ORDER BY w.data_poczatku, e.numer_etapu;
+SELECT wyprawa.nazwa AS nazwa_wyprawy,
+          wyprawa.data_rozpoczecia,
+         etapy_wyprawy.kolejnosc AS kolejnosc_etapu,
+        sektor.nazwa AS nazwa_sektora,
+           sektor.wspolrzedna_x,
+            sektor.wspolrzedna_y,
+            etapy_wyprawy.dziennik,
+           kreatura.nazwa AS kierownik_wyprawy
+     FROM wyprawa
+     JOIN etapy_wyprawy ON wyprawa.id_wyprawy = etapy_wyprawy.idWyprawy
+     JOIN sektor ON etapy_wyprawy.sektor = sektor.id_sektora
+     LEFT JOIN kreatura ON wyprawa.kierownik = kreatura.idKreatury
+     ORDER BY wyprawa.data_rozpoczecia, etapy_wyprawy.kolejnosc;
 3.1\\\\\\\
-SELECT s.nazwa AS sektor_nazwa, COUNT(e.sektor_id) AS liczba_odwiedzin FROM sektor s LEFT JOIN etapy_wyprawy e ON s.id = e.sektor_id GROUP BY s.nazwa;
+SELECT sektor.nazwa, 
+       COUNT(wyprawa.id_wyprawy) AS liczba_odwiedzin
+FROM sektor
+LEFT JOIN wyprawa ON sektor.Id_sektora = wyprawa.id_wyprawy
+GROUP BY sektor.nazwa;
 3.2\\\\\\\
-SELECT k.nazwa AS kreatura_nazwa,  IFNULL(COUNT(u.wyprawa_id), 0) AS liczba_wypraw, IF(COUNT(u.wyprawa_id) > 0, 'brał udział w wyprawie', 'nie brał udziału w wyprawie') AS status FROM kreatura k LEFT JOIN uczestnicy u ON k.id = u.kreatura_id GROUP BY k.nazwa;
+SELECT kreatura.nazwa, 
+       CASE 
+           WHEN COUNT(uczestnicy.id_wyprawy) > 0 THEN 'brał udział w wyprawie'
+           ELSE 'nie brał udziału w wyprawie'
+       END AS status
+FROM kreatura
+LEFT JOIN uczestnicy ON kreatura.idKreatury = uczestnicy.id_uczestnika
+LEFT JOIN wyprawa ON uczestnicy.id_wyprawy = wyprawa.id_wyprawy
+GROUP BY kreatura.nazwa;
 4.1\\\\\\\
-SELECT w.nazwa AS wyprawa_nazwa, SUM(CHAR_LENGTH(d.dziennik)) AS suma_znakow FROM wyprawa w JOIN dziennik d ON w.id = d.wyprawa_id GROUP BY w.nazwa HAVING suma_znakow < 400;
+SELECT wyprawa.nazwa AS nazwa_wyprawy,
+       SUM(CHAR_LENGTH(etapy_wyprawy.dziennik)) AS suma_znakow
+FROM wyprawa
+JOIN etapy_wyprawy ON wyprawa.id_wyprawy = etapy_wyprawy.idWyprawy
+GROUP BY wyprawa.id_wyprawy
+HAVING suma_znakow < 400;
 4.2\\\\\\\
-SELECT w.nazwa AS wyprawa_nazwa,  AVG(u.waga * u.ilosc) AS srednia_waga FROM wyprawa w JOIN uczestnicy u ON w.id = u.wyprawa_id GROUP BY w.nazwa;
+SELECT wyprawa.nazwa AS nazwa_wyprawy,
+       AVG(kreatura.waga) AS srednia_waga_zasobow
+FROM wyprawa
+JOIN uczestnicy ON wyprawa.id_wyprawy = uczestnicy.id_wyprawy
+JOIN kreatura ON uczestnicy.id_uczestnika = kreatura.idKreatury
+GROUP BY wyprawa.id_wyprawy;
 5.1\\\\\\\
-SELECT k.nazwa AS kreatura_nazwa, DATEDIFF(w.data_poczatku, k.data_urodzenia) AS wiek_w_dniach FROM kreatura k JOIN uczestnicy u ON k.id = u.kreatura_id JOIN wyprawa w ON u.wyprawa_id = w.id WHERE w.sektor_id = (SELECT id FROM sektor WHERE nazwa = 'Chatka dziadka');
+SELECT kreatura.nazwa AS nazwa_kreatury,
+       DATEDIFF(wyprawa.data_rozpoczecia, kreatura.dataUr) AS wiek_w_dniach
+FROM kreatura
+JOIN uczestnicy ON kreatura.idKreatury = uczestnicy.id_uczestnika
+JOIN wyprawa ON uczestnicy.id_wyprawy = wyprawa.id_wyprawy
+JOIN etapy_wyprawy ON wyprawa.id_wyprawy = etapy_wyprawy.idWyprawy
+JOIN sektor ON etapy_wyprawy.sektor = sektor.id_sektora
+WHERE sektor.nazwa = 'Chatka dziadka';
 
